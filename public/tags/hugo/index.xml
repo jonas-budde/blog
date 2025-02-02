@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Jonas Blog</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on Jonas Blog</description>
+    <title>Hugo on Jonas Blog</title>
+    <link>http://localhost:1313/tags/hugo/</link>
+    <description>Recent content in Hugo on Jonas Blog</description>
     <generator>Hugo</generator>
     <language>de</language>
     <lastBuildDate>Sun, 02 Feb 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Hello World</title>
       <link>http://localhost:1313/posts/hello-world/</link>

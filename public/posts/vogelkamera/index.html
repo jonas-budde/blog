@@ -18,26 +18,32 @@
     
 
     
-    <title>404 Page not found</title>
-    <meta name="description" content="">
+    <title>Projekt: Vogelkamera</title>
+    <meta name="description" content="🐦‍⬛
+Damit wir jedes Jahr die Zugvögel beobachten können, habe ich vor einigen Jahren eine Vogelkamera im Baum neben unserem Haus installiert.
+Material: Kamera …">
     <meta name="keywords" content=''>
 
-    <meta property="og:url" content="http://localhost:1313/404.html">
+    <meta property="og:url" content="http://localhost:1313/posts/vogelkamera/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="404 Page not found">
-    <meta property="og:description" content="">
+    <meta property="og:title" content="Projekt: Vogelkamera">
+    <meta property="og:description" content="🐦‍⬛
+Damit wir jedes Jahr die Zugvögel beobachten können, habe ich vor einigen Jahren eine Vogelkamera im Baum neben unserem Haus installiert.
+Material: Kamera …">
     <meta property="og:image" content="http://localhost:1313/">
     <meta property="og:image:secure_url" content="http://localhost:1313/">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="404 Page not found">
-    <meta name="twitter:description" content="">
-    <meta property="twitter:domain" content="http://localhost:1313/404.html">
-    <meta property="twitter:url" content="http://localhost:1313/404.html">
+    <meta name="twitter:title" content="Projekt: Vogelkamera">
+    <meta name="twitter:description" content="🐦‍⬛
+Damit wir jedes Jahr die Zugvögel beobachten können, habe ich vor einigen Jahren eine Vogelkamera im Baum neben unserem Haus installiert.
+Material: Kamera …">
+    <meta property="twitter:domain" content="http://localhost:1313/posts/vogelkamera/">
+    <meta property="twitter:url" content="http://localhost:1313/posts/vogelkamera/">
     <meta name="twitter:image" content="http://localhost:1313/">
 
     
-    <link rel="canonical" href="http://localhost:1313/404.html">
+    <link rel="canonical" href="http://localhost:1313/posts/vogelkamera/">
 
     
     <link rel="stylesheet" type="text/css" href="/css/normalize.min.css" media="print">
@@ -124,23 +130,88 @@
     </nav>
 </header>
 <main id="content">
+    <div class="post container">
+    <div class="post-header-section">
+        <h1>Projekt: Vogelkamera</h1>
 
-<div class="text-404">
-  <h1 class="error-emoji"></h1>
-  <h2>
-      404 ... Diese Seite existiert (noch) nicht, gehen Sie zu zurück auf <a href="http://localhost:1313/">Los</a>
-  </h2>
+        
+
+        
+	
+	
+	
+	
+        
+
+	
+
+	
+
+	
+          <small role="doc-subtitle"></small>
+	
+
+	
+          <p class="post-date">
+              
+
+              02.02.2025
+
+              
+          </p>
+	
+
+        <ul class="post-tags">
+          
+        </ul>
+    </div>
+
+    <div class="post-content">
+        <p>🐦‍⬛</p>
+<p>Damit wir jedes Jahr die Zugvögel beobachten können, habe ich vor einigen Jahren eine Vogelkamera im Baum neben unserem Haus installiert.</p>
+<hr>
+<h2 id="material">Material:</h2>
+<ul>
+<li>
+<p><a href="https://electreeks.de/startseite/2-raspberry-pi-kamera-175-super-weitwinkelobjektiv-automatik-infrarot-sperrfilter-full-hd-mit-infrarot-leds">Kamera</a> (Weitwinkelobjektiv und automatischer Infrarot-Sperrfilter)</p>
+</li>
+<li>
+<p>RaspberryPi 5</p>
+</li>
+</ul>
+<h2 id="software">Software:</h2>
+<ul>
+<li><a href="https://github.com/motioneye-project/motioneye">Motioneye</a></li>
+<li><a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare Tunnel</a></li>
+</ul>
+<h2 id="technischer-aufbau">Technischer Aufbau</h2>
+<p>Motioneye wird auf dem RaspberryPi installiert. Anschließend wird der RasperryPi mit der Kamera verbunden. Nun kann in der Motioneye Software die entsprechende Kamera ausgewählt werden.</p>
+<p>TODO: Einstellung Kamera
+TODO: Einstellung Livestream</p>
+<p>Damit der Livestream der Kamera auch publiziert wird, muss die Option &ldquo;Stream&rdquo; aktiv sein. Dadurch stellt Motioneye einen Livestream auf dem angegebenen Port zur Verfügung.</p>
+<p>Um diesen Port nun öffentlich zu machen, benutzen wir Cloudflare Tunnel.
+Diese Software wird auf dem RaspberryPi als Docker Container gestartet.</p>
+<p>TODO: Einstellung Cloudflare Portal
+TODO: Möglichkeit Adminportal Cloudflare Tunnel absichern mit Google usw.</p>
+<p>Nun stellen wir im Cloudflare Portal die Weiterleitung zu unserem Host ein. Dadurch können wir nun den lokal freigegebenen Livestream über die konfigurierte URL erreichen.</p>
+<h2 id="ergebnis">Ergebnis</h2>
+<p>Wir können nun aus dem öffentlichen Internet sicher auf unsere Vogelkamera zugreifen.</p>
+
+        
+    </div>
+
+    <div class="prev-next">
+        
+    </div>
+
+    
+    
+    
 </div>
-<script>
-  const errorEmojiContainer = document.getElementsByClassName('error-emoji')[0];
-  const emojiArray = [
-    '\\(o_o)/', '(o^^)o', '(˚Δ˚)b', '(^-^*)', '(≥o≤)', '(^_^)b', '(·_·)',
-    '(=\'X\'=)', '(>_<)', '(;-;)', '\\(^Д^)/',
-  ];
-  const errorEmoji = emojiArray[Math.floor(Math.random() * emojiArray.length)];
-  errorEmojiContainer.appendChild(document.createTextNode(errorEmoji));
-</script>
 
+
+
+    
 
         </main><footer class="footer">
     
@@ -168,7 +239,7 @@
     
 
     <span>
-        Made using <a style="text-decoration:none" target="_blank" href="https://github.com/gokarna-theme/gokarna-hugo">Gokarna</a>
+        Made with &#10084;&#65039; using <a target="_blank" href="https://github.com/gokarna-theme/gokarna-hugo">Gokarna</a>
     </span>
 </footer>
 </body>

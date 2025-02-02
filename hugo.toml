@@ -1,4 +1,54 @@
-baseURL = 'https://jonas.fambud.de/'
-languageCode = 'de-de'
-title = 'Jonas Blog'
-theme = 'hugo-simple'
+baseURL = "https://jonas.bud.de/"
+defaultContentLanguage = "de"
+# Automatically generate robots.txt
+enableRobotsTXT = true
+enableEmoji = true
+languageCode = "de"
+theme = "gokarna"
+title = "Jonas Blog"
+
+[params]
+  # Choose the color shown when hyperlinks are hovered over
+  accentColor = "#FF4D4D"
+
+  # Configure how post dates are displayed
+  dateFormat = "02.01.2006"
+
+  # Footer text (i.e. author/project name)
+  footer = "Jonas"
+
+  numberPostsOnHomePage = 4
+
+  showPostsOnHomePage = "recent"
+
+[menu]
+  [[menu.main]]
+    # Display name
+    name = "Posts"
+
+    # Relative URL slug (appended to baseURL)
+    url = "/posts/"
+
+    # Lower weights are listed first in the menu (leftmost); higher weights are
+    # listed last in the menu (rightmost)
+    weight = 1
+
+  [[menu.main]]
+    # Unique identifiers are required for menu entries without a name property,
+    # or for menu entries which re-use a name
+    identifier = "github"
+
+    # Absolute URL to external resource
+    url = "https://github.com/jonas-budde"
+    weight = 2
+    
+    # Surround the menu entry (or name) with HTML content, such as Feather
+    # icons: https://feathericons.com
+    pre = "<span data-feather='github'></span>"
+    post = "" 
+
+  [[menu.main]]
+    identifier = "Linkedin"
+    url = "https://www.linkedin.com/in/jonas-budde/"
+    pre = "<span data-feather='linkedin'></span>"
+    weight = 3
