@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Jonas Blog</title>
+    <link>https://jonas.fambud.de/posts/</link>
+    <description>Recent content on Jonas Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>de-de</language>
+    <lastBuildDate>Sun, 14 Jan 2024 07:07:07 +0100</lastBuildDate>
+    <atom:link href="https://jonas.fambud.de/posts/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

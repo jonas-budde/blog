@@ -1,0 +1,4 @@
+baseURL = 'https://jonas.fambud.de/'
+languageCode = 'de-de'
+title = 'Jonas Blog'
+theme = 'hugo-simple'
