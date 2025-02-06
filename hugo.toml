@@ -1,11 +1,13 @@
-baseURL = "https://jonas.bud.de/"
+title = "Jonas Blog"
+baseURL = "https://jonas-budde.github.io/"
 defaultContentLanguage = "de"
+languageCode = "de"
+
 # Automatically generate robots.txt
 enableRobotsTXT = true
 enableEmoji = true
-languageCode = "de"
+
 theme = "gokarna"
-title = "Jonas Blog"
 
 [params]
   # Choose the color shown when hyperlinks are hovered over
