@@ -1,5 +1,5 @@
 title = "Jonas Blog"
-baseURL = "https://jonas-budde.github.io/"
+baseURL = "https://jonas-budde.github.io/blog/"
 defaultContentLanguage = "de"
 languageCode = "de"
 
