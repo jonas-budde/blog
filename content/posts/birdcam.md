@@ -1,6 +1,5 @@
 ---
 date: 2025-02-02T20:34:44+01:00
-lastmod: 2025-02-02
 showTableOfContents: false
 title: "Bird Camera"
 draft: true
