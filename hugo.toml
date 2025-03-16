@@ -1,5 +1,5 @@
 title = "Jonas Blog"
-baseURL = "https://jonas-budde.github.io/blog/"
+baseURL = "https://jonas.garden/"
 defaultContentLanguage = "en"
 languageCode = "en"
 
@@ -16,7 +16,7 @@ theme = "gokarna"
 
 [params]
   # Choose the color shown when hyperlinks are hovered over
-  accentColor = "#FF4D4D"
+  accentColor = "#26a651"
 
   # Configure how post dates are displayed
   dateFormat = "02.01.2006"
@@ -31,7 +31,7 @@ theme = "gokarna"
   # add umami analytics
   customHeadHTML = '''
     <script defer src="https://cloud.umami.is/script.js" data-website-id="4e4610f0-e0df-41f3-b564-2a94feb33a1e"></script>
-    <link rel="icon" href="/blog/favicon.ico">
+    <link rel="icon" href="/favicon.ico">
   '''
 
 [menu]

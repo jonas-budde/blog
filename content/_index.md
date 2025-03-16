@@ -1,3 +1,3 @@
 ## Moin 👋
 
-My name is Jonas and this is my personal blog.
+My name is Jonas and this is my digital garden 🪴
