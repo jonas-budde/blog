@@ -9,6 +9,11 @@ enableEmoji = true
 
 theme = "gokarna"
 
+[module]
+  [[module.mounts]]
+  source = "static"
+  target = "assets"
+
 [params]
   # Choose the color shown when hyperlinks are hovered over
   accentColor = "#FF4D4D"

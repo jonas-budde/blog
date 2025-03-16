@@ -12,7 +12,7 @@ Inspired by this [Instagram Reel](https://www.instagram.com/sophie_elinor/reel/C
 
 ![The Final Result:](/media/disco-clippy/07-disco-clippy-final-result-02.gif)
 
-## Prerequisites
+## Requirements
 
 Materials:
 - [2m PVC Pipe](https://www.bauhaus.info/kabelschutzrohre/stangenrohr/p/12171597)
@@ -44,32 +44,33 @@ Afterwards I glued the scaled up Clippy to a piece of cardboard and placed it un
 ## 2. Bending Pipes
 
 Once you got all the materials you need and you're happy with the scale of your print, you can 
-start with bending the pipes using a hot air gun.
-To not lose the circle shape of the pipe, fill it with sand in advance.
+start by bending the pipes using a hot air gun.
+To keep the circle shape of the pipe, fill it with sand in advance.
 
 ![BendPart](/media/disco-clippy/02-disco-clippy-bend.jpeg)
 
 ## 3. Smoothing out Pipes
 
-While using the hot air gun, my pipe shrunk in some funny shapes. 
+While using the hot air gun, my pipe shrunk into some funny shapes. 
 To solve that, I used moltofil (some type of filler used for cracks in walls) to get a circle shape again.
-The Moltofil needed time to dry, afterwards I sanded it down using sanding paper.
+The Moltofil needed time to dry, afterwards I sanded it down using sand paper.
 
 ## 4. Printing the end cap
 
 The pipe has a outer diameter of 20mm and a inner diameter of 18mm.
 I designed some end caps for the pipe with https://www.tinkercad.com/. 
-The end caps later got covered with small disco mirror tiles.
+The end caps later got covered with small mirror tiles.
 
-[File on Printables](https://www.printables.com/model/1231719-disco-clippy-end-cap) 
+[Download the file on printables.com](https://www.printables.com/model/1231719-disco-clippy-end-cap)
+
 ![end cap](/media/disco-clippy/04-disco-clippy-end-cap.png)
 
 ## 5. Creating eyes and eyebrows
 
-To get the eyes and eyebrows we need to cut the iris part of the eye and the eyebrows from a solid mirror.
+To get the eyes and eyebrows we need to cut the iris part of the eye and the eyebrows from a solid plastic mirror.
 I used a jigsaw for that and glued the plastic mirror inbetween two scrap plywood sheets with some doublesided tape, to reduce the vibrations. Without the support of the plywood the vibration would crack the plastic mirror really easily so this extra layer was needed. 
 
-I had to cut the mirrors at the curves with the Knipex clipper so that they were round.
+I had to cut the mirrors at the curves with the Knipex clippers so that they were round.
 
 ![EyesAndEyebrows](/media/disco-clippy/03-disco-clippy-eyes-and-eyebrows.jpeg)
 
@@ -77,7 +78,7 @@ I had to cut the mirrors at the curves with the Knipex clipper so that they were
 
 I sprayed the pipe silver to give it a nice appearance. This makes gaps between the small disco mirrors less noticeable.
 After creating the Eyes and Eyebrows I started sticking all disco mirrors on to the pipe.
-I had to cut some mirrors to size with the knipex clippers.
+I had to cut some mirrors to size with the Knipex clippers.
 
 ![InProgress](/media/disco-clippy/05-disco-clippy-progress.jpeg)
 
