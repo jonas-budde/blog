@@ -30,7 +30,8 @@ theme = "gokarna"
 
   # add umami analytics
   customHeadHTML = '''
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="4e4610f0-e0df-41f3-b564-2a94feb33a1e"></script>"
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="4e4610f0-e0df-41f3-b564-2a94feb33a1e"></script>
+    <link rel="icon" href="/blog/favicon.ico">
   '''
 
 [menu]
@@ -39,7 +40,7 @@ theme = "gokarna"
     name = "Posts"
 
     # Relative URL slug (appended to baseURL)
-    url = "/posts/"
+    url = "posts/"
 
     # Lower weights are listed first in the menu (leftmost); higher weights are
     # listed last in the menu (rightmost)
