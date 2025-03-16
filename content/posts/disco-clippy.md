@@ -1,10 +1,6 @@
 ---
 date: 2025-02-18T20:20:51+01:00
-# description: ""
-# image: ""
-lastmod: 2025-02-18
 showTableOfContents: true
-# tags: ["",]
 title: "Disco Clippy"
 type: "post"
 ---

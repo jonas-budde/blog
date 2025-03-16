@@ -28,6 +28,11 @@ theme = "gokarna"
 
   showPostsOnHomePage = "recent"
 
+  # add umami analytics
+  customHeadHTML = '''
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="4e4610f0-e0df-41f3-b564-2a94feb33a1e"></script>"
+  '''
+
 [menu]
   [[menu.main]]
     # Display name
