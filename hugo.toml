@@ -1,7 +1,7 @@
 title = "Jonas Blog"
 baseURL = "https://jonas-budde.github.io/blog/"
-defaultContentLanguage = "de"
-languageCode = "de"
+defaultContentLanguage = "en"
+languageCode = "en"
 
 # Automatically generate robots.txt
 enableRobotsTXT = true

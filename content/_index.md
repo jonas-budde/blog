@@ -1,1 +1,1 @@
-👋 Hallo hier entsteht gerade mein Blog.
+Moin 👋
