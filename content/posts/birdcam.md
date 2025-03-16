@@ -2,12 +2,12 @@
 date: 2025-02-02T20:34:44+01:00
 lastmod: 2025-02-02
 showTableOfContents: false
-title: "Project: Bird Camera"
+title: "Bird Camera"
 draft: true
 type: "post"
 ---
 
-So that we can observe the migratory birds every year, I installed a bird camera in the tree next to our house a few years ago.
+To observe the migratory birds every year, I installed a bird camera in the tree next to our house.
 
 ---
 
