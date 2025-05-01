@@ -58,10 +58,25 @@ theme = "gokarna"
     # Surround the menu entry (or name) with HTML content, such as Feather
     # icons: https://feathericons.com
     pre = "<span data-feather='github'></span>"
-    post = "" 
+    post = ""
+
+    [menu.main.params]
+      newPage = true
 
   [[menu.main]]
     identifier = "Linkedin"
     url = "https://www.linkedin.com/in/jonas-budde/"
     pre = "<span data-feather='linkedin'></span>"
     weight = 3
+
+  [menu.main.params]
+    newPage = true
+
+  [[menu.main]]
+    identifier = "PedalRoom"
+    url = "https://www.pedalroom.com/members/jonasb"
+    pre = "<img class='svg-inject' src='media/icons/bicycle.svg'/>"
+    weight = 4
+
+    [menu.main.params]
+      newPage = true
