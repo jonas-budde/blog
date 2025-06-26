@@ -8,7 +8,8 @@ enableRobotsTXT = true
 enableEmoji = true
 
 theme = "gokarna"
-
+pygmentsStyle = "solarized-dark"
+#native,rrt,solarized-dark,solarized-dark256,-light
 [module]
   [[module.mounts]]
   source = "static"
