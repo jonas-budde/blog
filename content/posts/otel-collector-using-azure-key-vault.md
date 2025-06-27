@@ -20,21 +20,49 @@ I used the [Secrets Store CSI Driver](https://secrets-store-csi-driver.sigs.k8s.
 
 This block defines all necessary local values to avoid repetition and improve maintainability. It includes names and IDs for Azure resources like the Key Vault, identity settings, and parameters for the OpenTelemetry (OTEL) Collector deployment. Using locals makes the code cleaner and easier to manage.
 
+
 ```terraform
 locals {
   resource_group_name = "rg-otel-test"
   location            = "germanywestcentral"
   tenant_id           = "xyz"
+  subscription_id     = "xyz" 
   key_vault_name      = "kv-otel-test"
-  key_vault_id        = "/subscriptions/xyz/resourceGroups/${local.resource_group_name}/providers/Microsoft.KeyVault/vaults/${local.key_vault_name}"
+  key_vault_id        = "xyz" use output of key vault object
   otel_collector = {
     namespace            = "monitoring"
     service_account_name = "otel-collector-service-account"
     secret_name          = "otel-collector-secret"
     secret_provider_class_name = "otel-collector-secret-provider-class"
+    image_tag = "0.128.0"
   }
-  cluster_oidc_issuer_url                = "https://gwc.oic.prod-aks.azure.com/00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111/"
+  cluster_oidc_issuer_url                = "xyz" # use output of aks object
   federated_identity_credential_audience = ["api://AzureADTokenExchange"]
+}
+```
+
+## Configure AKS and Key Vault
+
+Enabling `workload_identity_enabled` and `oidc_issuer_enabled` on the AKS cluster lets your Collector pods authenticate to Azure AD via federated identity, eliminating the need for long‐lived service principal credentials. The `key_vault_secrets_provider` block turns on automatic secret refresh (every 10 s) so your pods always see the latest Key Vault values. Finally, setting `enable_rbac_authorization = true` on the Key Vault lets you enforce Azure RBAC policies for secure, workload‐identity–based access.
+
+```terraform
+resource "azurerm_kubernetes_cluster" "this" {
+  ...
+  workload_identity_enabled = true
+  oidc_issuer_enabled       = true
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled  = true
+    secret_rotation_interval = "10s"
+  }
+  ...
+}
+
+resource "azurerm_key_vault" "this" {
+  ...
+  enable_rbac_authorization = true
+  tenant_id                 = local.tenant_id
+  ...
 }
 ```
 
@@ -76,6 +104,7 @@ resource "kubernetes_manifest" "secret_provider_class" {
     kind       = "SecretProviderClass"
     metadata = {
       name = local.otel_collector.secret_provider_class_name
+      namespace = local.otel_collector.namespace
     }
     spec = {
       provider = "azure"
@@ -97,7 +126,7 @@ resource "kubernetes_manifest" "secret_provider_class" {
           secretName = local.otel_collector.secret_name
           type       = "Opaque"
           data = [
-            { key = "DATADOG_API_KEY",  objectName = "datadog-api-key" }
+            { key = "DATADOG_API_KEY", objectName = "datadog-api-key" }
           ]
         }
       ]
@@ -117,56 +146,57 @@ We deploy the OTEL Collector via Helm, enabling workload identity and mounting t
 ```terraform
 resource "helm_release" "this" {
   name            = "helm-release-otel-collector"
-  chart           = "../../../../kubernetes/charts/opentelemetry-collector-0.107.0"
+  repository      = "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  chart           = "opentelemetry-collector"
   namespace       = local.otel_collector.namespace
   cleanup_on_fail = true
-
-  set {
+  set = [{
     name  = "serviceAccount.annotations.azure\\.workload\\.identity/client-id"
     value = azurerm_user_assigned_identity.this.client_id
-  }
-  set {
+    }, {
     name  = "podLabels.azure\\.workload\\.identity/use"
     type  = "string"
     value = "true"
-  }
-  set {
+    }, {
     name  = "extraVolumes[0].name"
     value = "secrets-store"
-  }
-  set {
+    }, {
     name  = "extraVolumes[0].csi.driver"
     value = "secrets-store.csi.k8s.io"
-  }
-  set {
+    }, {
     name  = "extraVolumes[0].csi.readOnly"
     value = true
-  }
-  set {
+    }, {
     name  = "extraVolumes[0].csi.volumeAttributes.secretProviderClass"
     value = local.otel_collector.secret_provider_class_name
-  }
-  set {
+    }, {
     name  = "extraVolumeMounts[0].name"
     value = "secrets-store"
-  }
-  set {
+    }, {
     name  = "extraVolumeMounts[0].mountPath"
     value = "/mnt/secrets-store"
-  }
-  set {
+    }, {
     name  = "extraVolumeMounts[0].readOnly"
     value = true
-  }
-  set {
+    }, {
     name  = "extraEnvsFrom[0].secretRef.name"
     value = local.otel_collector.secret_name
-  }
-  set {
+    }, {
     name  = "extraEnvsFrom[0].secretRef.optional"
     value = false
-  }
-
+    },{
+    name = "image.repository"
+    value = "otel/opentelemetry-collector-contrib"
+    },{
+    name = "image.tag"
+    value = local.otel_collector.image_tag
+    },{
+    name = "mode"
+    value = "daemonset" # modify as needed
+    },{
+    name = "serviceAccount.name"
+    value = local.otel_collector.service_account_name
+  }]
   depends_on = [
     kubernetes_manifest.secret_provider_class
   ]
@@ -197,10 +227,8 @@ Prerequisite: You must have the Reloader Helm chart deployed in your cluster and
 ```terraform
 resource "helm_release" "this" {
   ...
-  set {
-    name  = "annotations.secret\\.reloader\\.stakater\\.com/reload"
-    value = local.otel_collector.secret_name
-  }
+  name  = "annotations.secret\\.reloader\\.stakater\\.com/reload"
+  value = local.otel_collector.secret_name
   ...
 }
 ```
