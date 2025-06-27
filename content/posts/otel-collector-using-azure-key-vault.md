@@ -216,7 +216,7 @@ exporters:
 
 ## Optional: Dynamic Reload with Reloader
 
-This annotation hooks into Stakater Reloader so that whenever the Kubernetes Secret (populated from Azure Key Vault via the CSI driver) is updated—such as when you rotate keys in Key Vault—the Collector pod automatically restarts and picks up the new values. Without this, you’d need to manually roll or restart pods after every secret rotation in Azure Key Vault to ensure the OTEL Collector uses the latest credentials.
+This annotation hooks into Stakater Reloader so that whenever the Kubernetes Secret (populated from Azure Key Vault via the CSI driver) is updated - such as when you rotate keys in Key Vault - the Collector pod automatically restarts and picks up the new values. Without this, you’d need to manually roll or restart pods after every secret rotation in Azure Key Vault to ensure the OTEL Collector uses the latest credentials.
 
 Prerequisite: You must have the Reloader Helm chart deployed in your cluster and your Azure Key Vault secrets already mounted into Kubernetes via the Secrets Store CSI Driver.
 
