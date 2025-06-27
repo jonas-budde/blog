@@ -1,10 +1,6 @@
 ---
-date: 2025-06-26T00:59:28+02:00
-# description: ""
-# image: ""
-lastmod: 2025-06-22
+date: 2025-06-27
 showTableOfContents: true
-# tags: ["",]
 title: "OTEL Collector with Azure Key Vault"
 type: "post"
 ---
