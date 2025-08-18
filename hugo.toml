@@ -76,7 +76,7 @@ pygmentsStyle = "solarized-dark"
   [[menu.main]]
     identifier = "PedalRoom"
     url = "https://www.pedalroom.com/members/jonasb"
-    pre = "<img class='svg-inject' src='media/icons/bicycle.svg'/>"
+    pre = "<img class='svg-inject' src='/media/icons/bicycle.svg'/>"
     weight = 4
 
     [menu.main.params]
