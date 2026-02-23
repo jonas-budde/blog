@@ -20,6 +20,9 @@ pygmentsStyle = "solarized-dark"
   target = "assets"
 
 [params]
+  # Author name for structured data
+  author = "Jonas"
+
   # Choose the color shown when hyperlinks are hovered over
   accentColor = "#26a651"
 
