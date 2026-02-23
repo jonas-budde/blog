@@ -9,7 +9,11 @@ enableEmoji = true
 
 theme = "gokarna"
 pygmentsStyle = "solarized-dark"
-#native,rrt,solarized-dark,solarized-dark256,-light
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
 [module]
   [[module.mounts]]
   source = "static"

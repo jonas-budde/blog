@@ -2,6 +2,8 @@
 date: 2025-06-27
 showTableOfContents: true
 title: "OTEL Collector with Secrets from Azure Key Vault"
+description: "Securely deploy OpenTelemetry Collector on AKS: mount Azure Key Vault secrets with the Secrets Store CSI Driver and Workload Identity. Terraform & Helm steps included."
+tags: ["OTEL", "OTEL Collector", "Collector", "OpenTelemetry Collector", "Open Telemetry", "OpenTelemetry", "Azure", "Kubernetes", "AKS", "Azure Kubernetes Service", "Secrets Kubernetes"]
 type: "post"
 ---
 
