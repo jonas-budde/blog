@@ -2,6 +2,8 @@
 date: 2025-03-16T18:00:00+01:00
 showTableOfContents: true
 title: "Disco Clippy"
+description: "DIY Disco Clippy — a step-by-step tutorial to create a Microsoft Clippy Disco sculpture from PVC pipe, 3D-printed end caps and disco tiles. Materials, tips and photos included."
+tags: ["Disco Clippy", "Karl Klammer", "Microsoft Clippy", "Clippy", "Klammer"]
 type: "post"
 ---
 Inspired by this [Instagram Reel](https://www.instagram.com/sophie_elinor/reel/C839FfTSy38/), I started creating my own Disco Clippy.
