@@ -1,0 +1,116 @@
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Theme accent color and font size -->
+    <style>
+        :root {
+            --accent-color: {{ .Site.Params.AccentColor | default "#FF4D4D" }};
+            --font-size: {{ .Site.Params.FontSize | default "17.5px" }};
+        }
+    </style>
+
+    <!-- SEO: Prepare meta content -->
+    {{ $title := .Title | markdownify | default .Site.Title }}
+    {{ $fullTitle := cond (eq .Title .Site.Title) .Site.Title (printf "%s | %s" .Title .Site.Title) }}
+    {{ $description := "" }}
+    {{ with .Description }}
+        {{ $description = . }}
+    {{ else }}
+        {{ with .Summary }}
+            {{ $description = . | plainify | truncate 160 }}
+        {{ else }}
+            {{ $description = .Site.Params.description | default "" }}
+        {{ end }}
+    {{ end }}
+    {{ $image := .Params.image | default (.Scratch.Get "avatarImgSrc") | default .Site.Params.og_image }}
+    {{ $keywords := .Params.tags | default (slice) }}
+    {{ $author := .Site.Params.author | default "Jonas" }}
+
+    <!-- Primary meta tags -->
+    <title>{{ $fullTitle }}</title>
+    <meta name="title" content="{{ $fullTitle }}">
+    {{ if $description }}<meta name="description" content="{{ $description }}">{{ end }}
+    {{ with $keywords }}<meta name="keywords" content="{{ delimit . ", " }}">{{ end }}
+    <meta name="author" content="{{ $author }}">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="{{ .Site.LanguageCode | default "en" }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+    <meta property="og:url" content="{{ .Permalink }}">
+    <meta property="og:title" content="{{ $title }}">
+    {{ if $description }}<meta property="og:description" content="{{ $description }}">{{ end }}
+    {{ with $image }}<meta property="og:image" content="{{ absURL . }}">{{ end }}
+    <meta property="og:site_name" content="{{ .Site.Title }}">
+    <meta property="og:locale" content="{{ .Site.LanguageCode | default "en_US" }}">
+    {{ if .IsPage }}
+    <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+    {{ if .Lastmod }}<meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">{{ end }}
+    {{ with $author }}<meta property="article:author" content="{{ . }}">{{ end }}
+    {{ range .Params.tags }}<meta property="article:tag" content="{{ . }}">{{ end }}
+    {{ end }}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ .Permalink }}">
+    <meta name="twitter:title" content="{{ $title }}">
+    {{ if $description }}<meta name="twitter:description" content="{{ $description }}">{{ end }}
+    {{ with $image }}<meta name="twitter:image" content="{{ absURL . }}">{{ end }}
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ .Permalink }}">
+
+    <!-- JSON-LD Structured Data -->
+    {{ if .IsPage }}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "{{ $title }}",
+        "description": "{{ $description }}",
+        "url": "{{ .Permalink }}",
+        "datePublished": "{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}",
+        {{ if .Lastmod }}"dateModified": "{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}",{{ end }}
+        "author": {
+            "@type": "Person",
+            "name": "{{ $author }}"
+        },
+        "publisher": {
+            "@type": "Person",
+            "name": "{{ $author }}"
+        }{{ with $image }},
+        "image": "{{ absURL . }}"{{ end }}
+    }
+    </script>
+    {{ else }}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "{{ .Site.Title }}",
+        "url": "{{ .Site.BaseURL }}",
+        "description": "{{ .Site.Params.description | default "" }}"
+    }
+    </script>
+    {{ end }}
+
+    <!-- Stylesheets -->
+    {{ $cssNormalize := resources.Get "css/normalize.min.css" }}
+    <link rel="stylesheet" type="text/css" href="{{ $cssNormalize.RelPermalink }}" media="print">
+
+    {{ $cssMain := resources.Get "css/main.css" | minify }}
+    <link rel="stylesheet" type="text/css" href="{{ $cssMain.RelPermalink }}">
+
+    {{ $cssDark := resources.Get "css/dark.css" | minify }}
+    <link id="dark-theme" rel="stylesheet" href="{{ $cssDark.RelPermalink }}">
+
+    <!-- JavaScript bundle -->
+    {{ $jsBundle := resources.Match "js/**.js" | resources.Concat "js/bundle.js" | minify | resources.Fingerprint "sha256" }}
+    <script src="{{ $jsBundle.RelPermalink }}" integrity="{{ $jsBundle.Data.Integrity }}"></script>
+
+    <!-- Custom head HTML injection -->
+    {{ if .Site.Params.CustomHeadHTML }}
+    {{ .Site.Params.CustomHeadHTML | safeHTML }}
+    {{ end }}
+</head>

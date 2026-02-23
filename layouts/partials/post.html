@@ -1,0 +1,31 @@
+<!-- Tags and description are no longer displayed -->
+<div class="post container">
+    <div class="post-header-section">
+        <h1>{{ .Title | markdownify }}</h1>
+        <!-- No description, no date, no tags -->
+    </div>
+    <div class="post-content">
+        {{ .Content }}
+        {{ if .Site.Config.Services.Disqus.Shortname }}
+        <div class="post-comments">
+            {{ template "_internal/disqus.html" . }}
+        </div>
+        {{ end }}
+    </div>
+    <div class="prev-next">
+        {{ if (eq .Site.Params.TogglePreviousAndNextButtons true) }}
+            {{ if or .PrevInSection .NextInSection }}
+                {{ partial "prev-next.html" . }}
+            {{ end }}
+        {{ end }}
+    </div>
+    <!-- Back to top button -->
+    {{ if .Site.Params.ShowBackToTopButton }}
+        {{ partial "back-to-top.html" . }}
+    {{ end }}
+    {{ if .Site.Params.CustomCommentHTML }}
+    <div id="comments">
+        {{ .Site.Params.CustomCommentHTML | safeHTML }}
+    </div>
+    {{ end }}
+</div>
