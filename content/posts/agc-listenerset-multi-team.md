@@ -141,6 +141,8 @@ $ curl -s -o /dev/null -w "%{http_code}\n" -H "Host: team-b.example.com" http://
 
 ## A namespace without the label is denied
 
+![authorization](/media/agc-listenerset/diagram-authorization.png)
+
 `team-c` is not labeled and creates a ListenerSet anyway. The Gateway refuses it:
 
 ```
@@ -155,6 +157,8 @@ The AKS portal shows the result on the HTTP routes blade. `team-c-route` is *Not
 ![portal-httproutes](/media/agc-listenerset/portal-aks-httproutes-team-c-not-ready.png)
 
 ## A hostname conflict stays isolated
+
+![conflict](/media/agc-listenerset/diagram-conflict.png)
 
 I patched Team B's listener to use Team A's hostname:
 
@@ -258,6 +262,8 @@ The listeners that the teams attach through ListenerSets don't show up there. To
 
 ## HTTPS per team, certificates stay in the team namespace
 
+![tls](/media/agc-listenerset/diagram-tls.png)
+
 Each team can terminate TLS on its own listener. The certificate Secret lives in the team's namespace and is referenced from the ListenerSet, so no certificate has to be copied to the platform namespace:
 
 ```yaml
@@ -287,6 +293,8 @@ Both hostnames returned 200 through their own routes. I did not test whether one
 ## WAF policies on Gateway, ListenerSet and HTTPRoute
 
 The docs describe the policy on a Gateway or a route. I tried every level, with policies that block different paths, to see how they combine. The platform policy blocks `/blocked-platform`, Team A's blocks `/blocked-a`, Team B's `/blocked-b`.
+
+![waf-precedence](/media/agc-listenerset/diagram-waf-precedence.png)
 
 **1. On the ListenerSet.** The CRD accepts a ListenerSet as `targetRef`. It is not a documented target.
 
