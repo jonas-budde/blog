@@ -248,7 +248,7 @@ resource "azapi_resource" "sp_waf" {
 
 After that, both policies went to `Deployment=True` and the table above is the result.
 
-With an ALB-managed AGC (the `ApplicationLoadBalancer` resource with the AKS add-on) the Microsoft [WAF how-to](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/how-to-waf-gateway-api) has no `securityPolicies` step. I tested that path too: the controller creates one `securityPolicies` child per WAF policy itself. What it needs is permission. The first attempt failed with `LinkedAuthorizationFailed` because the add-on identity lacked the `join/action` on the WAF policy. After granting it `Network Contributor` on the policy, the CRD went to `Deployed` and `/blocked` returned 403. A BYO AGC like this one still needs the `securityPolicies` resource from your own code.
+With an ALB-managed AGC (the `ApplicationLoadBalancer` resource with the AKS add-on) the Microsoft [WAF how-to](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/how-to-waf-gateway-api) has no `securityPolicies` step. I tested that path too. At the time of testing it required the preview features `ManagedGatewayAPIPreview` and `ApplicationLoadBalancerPreview` plus the `aks-preview` and `alb` CLI extensions. The controller creates one `securityPolicies` child per WAF policy itself. What it needs is permission. The first attempt failed with `LinkedAuthorizationFailed` because the add-on identity lacked the `join/action` on the WAF policy. After granting it `Network Contributor` on the policy, the CRD went to `Deployed` and `/blocked` returned 403. A BYO AGC like this one still needs the `securityPolicies` resource from your own code.
 
 ## What the portal shows
 
