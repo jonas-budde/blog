@@ -1,7 +1,7 @@
 ---
 date: 2026-11-09
 showTableOfContents: true
-title: "A multi-team shared gateway on AKS with Application Gateway for Containers and Gateway API ListenerSet"
+title: "Multi-team shared gateways on AKS with AGC and ListenerSet"
 description: "Hands-on with Gateway API ListenerSet on Application Gateway for Containers: a platform team owns the Gateway, application teams attach their own listeners and routes, plus conflict isolation, namespace authorization and a WAF policy per team. OpenTofu code included."
 tags: ["Azure", "AKS", "Azure Kubernetes Service", "Application Gateway for Containers", "AGC", "Gateway API", "ListenerSet", "Platform Engineering", "WAF", "OpenTofu", "Terraform"]
 type: "post"
@@ -9,15 +9,15 @@ type: "post"
 
 ![architecture](/media/agc-listenerset/architecture.png)
 
-A shared gateway usually ends in one of two bad places. Either the platform team owns every hostname and becomes a ticket queue, or every team gets edit rights on the one Gateway object and one typo takes down everybody.
+A shared gateway usually ends in one of two bad places. Either the platform team owns every hostname and becomes a ticket queue or every team gets edit rights on the one Gateway object and one typo takes down everybody.
 
 Gateway API **ListenerSet** splits that responsibility: the platform team owns the `Gateway` and decides *which namespaces* may attach to it. Each application team creates its own `ListenerSet` (hostnames, ports, TLS) and `HTTPRoute` in its own namespace, without touching the Gateway.
 
-Application Gateway for Containers (AGC) supports this, and Microsoft documents it as [multi-team shared gateway](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/multi-team-shared-gateway) with a [how-to](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/how-to-multi-team-listeners-gateway-api). I followed that flow and extended it with a private frontend, a namespace that is denied, and a WAF policy per team. This post covers what worked, what didn't at first and what the portal does and does not show.
+Application Gateway for Containers (AGC) supports this and Microsoft documents it as [multi-team shared gateway](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/multi-team-shared-gateway) with a [how-to](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/how-to-multi-team-listeners-gateway-api). I followed that flow and extended it with a private frontend, a namespace that is denied and a WAF policy per team. This post covers what worked, what didn't at first and what the portal does and does not show.
 
 All results are from my lab run on 2026-11-09. Check the docs for the current status of the feature before you rely on it.
 
-All code is in a repo you can reproduce: **[demo-agc-listenerset](https://github.com/jonas-budde/demo-agc-listenerset)**.
+The demo code is here: **[demo-agc-listenerset](https://github.com/jonas-budde/demo-agc-listenerset)**.
 
 ## The model
 
@@ -206,7 +206,7 @@ spec:
     id: <WAF policy resource id>
 ```
 
-Each team has its own Azure WAF policy (DRS 2.1 plus one custom rule). Team A blocks `/blocked-a`, Team B blocks `/blocked-b`, and neither policy affects the other:
+Each team has its own Azure WAF policy (DRS 2.1 plus one custom rule). Team A blocks `/blocked-a`, Team B blocks `/blocked-b` and neither policy affects the other:
 
 ```
 $ curl -s -o /dev/null -w "%{http_code}\n" -H "Host: team-a.example.com" http://<public-frontend>/blocked-a
@@ -230,7 +230,7 @@ team-a      waf-team-a   False        19m
 team-b      waf-team-b   False        19m
 ```
 
-The condition said `NoDeployment: missing security policy for WAFPolicy "team-a/waf-team-a"` and the ALB Controller log repeated `security policy for WAFPolicy ... not found`. With a bring-your-own AGC, every WAF policy the CRD references needs a `securityPolicies` child resource on the AGC. Creating the Azure WAF policy alone is not enough. In OpenTofu with AzAPI, one per team:
+The condition said `NoDeployment: missing security policy for WAFPolicy "team-a/waf-team-a"` and the ALB Controller log repeated `security policy for WAFPolicy ... not found`. With a bring-your-own AGC, every WAF policy the CRD references needs a `securityPolicies` child resource on the AGC. Creating the Azure WAF policy alone is not enough. Microsoft describes the `SecurityPolicy` as the resource that scopes which WAF policies the ALB Controller may reference. So it works like an allow list on the ARM side: the controller only attaches WAF policies that are registered on the AGC. In OpenTofu with AzAPI that is one resource per WAF policy, so one per team here:
 
 ```terraform
 resource "azapi_resource" "sp_waf" {
@@ -248,6 +248,8 @@ resource "azapi_resource" "sp_waf" {
 
 After that, both policies went to `Deployment=True` and the table above is the result.
 
+With an ALB-managed AGC (the `ApplicationLoadBalancer` resource with the AKS add-on) the Microsoft [WAF how-to](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/how-to-waf-gateway-api) has no `securityPolicies` step. I tested that path too: the controller creates one `securityPolicies` child per WAF policy itself. What it needs is permission. The first attempt failed with `LinkedAuthorizationFailed` because the add-on identity lacked the `join/action` on the WAF policy. After granting it `Network Contributor` on the policy, the CRD went to `Deployed` and `/blocked` returned 403. A BYO AGC like this one still needs the `securityPolicies` resource from your own code.
+
 ## What the portal shows
 
 The AKS portal lists the Gateways and HTTP routes:
@@ -258,7 +260,7 @@ On the detail page of `shared-public`, the Listeners tab only shows the platform
 
 ![portal-gateway-overview](/media/agc-listenerset/portal-aks-gateway-shared-public-overview-platform-listener-only.png)
 
-The listeners that the teams attach through ListenerSets don't show up there. To see who is attached, use `kubectl get listenerset -A` and the Gateway's `status.attachedListenerSets`, or look at the routes. Keep that in mind if your platform team uses the portal for day-to-day checks.
+The listeners that the teams attach through ListenerSets don't show up there (yet). To see who is attached, use `kubectl get listenerset -A` and the Gateway's `status.attachedListenerSets` or look at the routes. Keep that in mind if your platform team uses the portal for day-to-day checks.
 
 ## HTTPS per team, certificates stay in the team namespace
 
@@ -279,7 +281,7 @@ listeners:
           name: tls-a        # Secret in namespace team-a
 ```
 
-With self-signed certificates for `tls-a` and `tls-b`, both ListenerSets were `Accepted`/`Programmed`, `attachedListenerSets` went to 4, and the frontend picked the certificate by SNI:
+With self-signed certificates for `tls-a` and `tls-b`, both ListenerSets were `Accepted`/`Programmed`, `attachedListenerSets` went to 4 and the frontend picked the certificate by SNI:
 
 ```
 $ openssl s_client -connect <ip>:443 -servername tls-a.example.com | grep subject=
@@ -329,7 +331,7 @@ team-a.example.com/blocked-a        -> 403
 team-b.example.com/blocked-platform -> 403   # still inherited
 ```
 
-So an application team can replace the platform baseline for its own route. If the platform team wants a baseline that cannot be overridden, don't rely on this. Restrict who can create `WebApplicationFirewallPolicy` objects with RBAC or admission policies, or copy the baseline rules into every team policy.
+So an application team can replace the platform baseline for its own route. If the platform team wants a baseline that cannot be overridden, don't rely on this. Restrict who can create `WebApplicationFirewallPolicy` objects with RBAC or admission policies or copy the baseline rules into every team policy.
 
 **6. Gateway and ListenerSet policy conflict.** I created the Gateway policy first, then one on the ListenerSet:
 
@@ -341,7 +343,7 @@ team-a.example.com/blocked-platform -> 403
 team-a.example.com/blocked-a        -> 200
 ```
 
-The policy created first stays in effect, and the later one is rejected. In my first attempt, with the ListenerSet policy created first, the Gateway policy was the one marked `Conflicted`. Order matters, and the status is the only place you will see it.
+The policy created first stays in effect and the later one is rejected. In my first attempt, with the ListenerSet policy created first, the Gateway policy was the one marked `Conflicted`. Order matters and the status is the only place you will see it.
 
 All of this is lab behavior of ALB Controller 1.13.0, not documented behavior. The experiment manifests are `manifests/60` to `64` in the repo.
 
@@ -350,7 +352,7 @@ All of this is lab behavior of ALB Controller 1.13.0, not documented behavior. T
 - ListenerSet gives each team its own listeners and routes without edit rights on the shared Gateway. The platform team stays in control of who may attach through `allowedListeners` and a namespace label.
 - A labeled namespace is only the Gateway's authorization. Combine it with RBAC.
 - A hostname conflict is contained in the offending ListenerSet. The other team and the Gateway keep working.
-- WAF policies work per HTTPRoute, and in my lab also on the ListenerSet and the Gateway. The most specific policy wins (route over ListenerSet or Gateway), and teams can therefore replace a platform baseline. Gateway plus ListenerSet policy conflict. With a bring-your-own AGC, add a `securityPolicies` resource per WAF policy or the CRD stays unprogrammed.
+- WAF policies work per HTTPRoute and in my lab also on the ListenerSet and the Gateway. The most specific policy wins (route over ListenerSet or Gateway) and teams can therefore replace a platform baseline. Gateway plus ListenerSet policy conflict. With a bring-your-own AGC, add a `securityPolicies` resource per WAF policy or the CRD stays unprogrammed.
 - The portal's Gateway view doesn't list ListenerSet listeners. Use `kubectl` for that.
 - This model needs Gateway API. Per the docs there is no equivalent ListenerSet-based delegation through the Ingress API.
 
