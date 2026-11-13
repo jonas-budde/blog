@@ -1,7 +1,7 @@
 ---
 date: 2026-11-09
 showTableOfContents: true
-title: "Azure Kubernetes Application Network on a Private AKS Cluster with an Internal Gateway"
+title: "AKS Application Network (AppNet) on a Private Cluster"
 description: "Hands-on with the Azure Kubernetes Application Network (managed Istio ambient mesh) preview: private AKS cluster, private-connect member join, internal Gateway API gateway, mTLS via ztunnel, L4 and L7 policies with a waypoint. OpenTofu code included."
 tags: ["Azure", "AKS", "Azure Kubernetes Service", "Azure Kubernetes Application Network", "AppNet", "Istio", "Ambient Mesh", "Gateway API", "Private Cluster", "OpenTofu", "Terraform"]
 type: "post"
@@ -11,13 +11,13 @@ type: "post"
 
 Azure Kubernetes Application Network (AppNet) is Microsoft's managed **Istio ambient mesh** for AKS. There are no sidecars: a node-level `ztunnel` handles mTLS and L4 policy, and optional **waypoint proxies** add L7 features. The Istio control plane (istiod and the CA) runs **outside your cluster**, managed by Microsoft. It is a different product from the Istio service mesh add-on, which is sidecar-based.
 
-AppNet is in **preview**, so it is not for production and not covered by an SLA. I wanted to know whether it works in the setup I'd actually use: a **private AKS cluster** with an **internal gateway**. This post shows what it takes, what I ran into, and what the mesh does once it runs.
+AppNet is in **preview**, so it is not for production and not covered by an SLA. I wanted to know whether it works in the setup I'd actually use: a **private AKS cluster** with an **internal gateway**. This post shows what it takes and what the mesh does once it runs.
 
-All results are from my lab run on 2026-11-09 in Sweden Central. All Azure resources are created with OpenTofu, the Kubernetes manifests are applied with kubectl.
+All results below are from my lab run on 2026-11-09 in Sweden Central.
 
-Code: **[demo-appnet-private](https://github.com/jonas-budde/demo-appnet-private)**
+All code is in a repo you can reproduce: **[demo-appnet-private](https://github.com/jonas-budde/demo-appnet-private)**. All Azure resources are created with OpenTofu, the Kubernetes manifests are applied with kubectl.
 
-## What the docs require
+## Overview
 
 From the [get started](https://learn.microsoft.com/en-us/azure/application-network/get-started) and [private connectivity](https://learn.microsoft.com/en-us/azure/application-network/private-connectivity) pages:
 
@@ -29,11 +29,13 @@ From the [get started](https://learn.microsoft.com/en-us/azure/application-netwo
 
 I used a regular AKS cluster. There is an open issue where joining an AKS Automatic cluster fails ([Azure/AKS#6055](https://github.com/Azure/AKS/issues/6055)).
 
-## The setup
+## The test setup
 
 - 1 VNet with a node subnet and a `/27` subnet for the AppNet private connection
 - Private AKS cluster, Free tier, 1 node, Azure CNI Overlay with Cilium, Entra integration with Azure RBAC, OIDC issuer, managed Gateway API
 - One AppNet resource and one member (the cluster)
+
+## Creating the cluster and the member
 
 The cluster uses AzAPI, because `ingressProfile.gatewayAPI` is not in the `azurerm` provider yet:
 
@@ -368,14 +370,10 @@ RBAC: access denied
 
 The rule is enforced by the waypoint, not by the app. Kubernetes warns when you apply the policy that a DENY rule with only HTTP attributes denies all TCP traffic under its scope, and recommends to set a port explicitly. For this demo I left it out, in a real setup add the port.
 
-## Gotchas
+## Preview quirks
 
 - The member name needs 3 to 24 characters (`m1` is rejected)
-- `azurerm_subnet` does not know the `Microsoft.AppLink/appLinks` delegation, AKS adds it, use `ignore_changes = [delegation]`
-- With your own VNet, the cluster identity needs `Network Contributor` for internal load balancers, and the role can take many minutes to take effect
-- The Istio add-on must be off and the region list is short (no West Europe, Germany West Central, France Central or UK South)
-- The cluster is private, so use `az aks command invoke` or a host inside the VNet. A public IP allowlist does not work for private clusters
-- Deleting the AKS cluster alone took about 6 minutes, and the member has to go before the AppNet resource (OpenTofu handles the order)
+- `azurerm_subnet` rejects the `Microsoft.AppLink/appLinks` delegation name, so the delegation can't be set in code (see above)
 
 ## Takeaways
 
