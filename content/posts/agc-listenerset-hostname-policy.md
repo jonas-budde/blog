@@ -9,7 +9,7 @@ type: "post"
 
 In my [last post](/posts/agc-listenerset-multi-team/) a platform team owns the Gateway and every application team attaches its own `ListenerSet` and `HTTPRoute`. The only control the platform team has is `allowedListeners`, which selects *namespaces*. Once a namespace is allowed, it can claim any hostname.
 
-A conflict is contained, but nothing stops team-b from creating a listener for `api.team-a.example.com`. This post closes that gap with a built-in Kubernetes feature: a **ValidatingAdmissionPolicy** (CEL). No Kyverno, no Gatekeeper.
+A conflict is contained, but nothing stops team-b from creating a listener for `api.team-a.example.com`. This post closes that gap with a built-in Kubernetes feature: a **ValidatingAdmissionPolicy** (CEL). No extra component (I also tried Gatekeeper, see below).
 
 The full files and the recorded output are in [demo-agc-listenerset](https://github.com/jonas-budde/demo-agc-listenerset) (`hostname-policy/` and `docs/outputs-hostname-policy.txt`).
 
@@ -110,6 +110,20 @@ The listenersets "b-uses-a" is invalid: : ValidatingAdmissionPolicy 'team-hostna
 ```
 
 The repo has the output of every case, including the apply errors and the `kubectl get` results.
+
+## What about Gatekeeper?
+
+AKS ships Gatekeeper with the Azure Policy add-on, so I tried the same rule there (AKS 1.36.5, Gatekeeper v3.23.1). The Rego version is in the repo under `hostname-policy/gatekeeper/`.
+
+- **You cannot apply your own ConstraintTemplate.** With the add-on enabled, `kubectl apply` is rejected: `This cluster is governed by Azure Policy. Policies must be created through Azure.`
+- **The template has to go through an Azure Policy custom definition** (mode `Microsoft.Kubernetes.Data`) with the template embedded, plus an assignment. After the assignment it took about 15 minutes until the template and constraints showed up in the cluster.
+- **No namespace labels.** I did not get the label-driven model working. Instead each team needs its own assignment with the namespace and domain as parameters. I did not test Gatekeeper's namespace sync with the add-on.
+- **The result is the same for covered namespaces.** A foreign hostname, a wildcard outside the domain, a missing hostname, a lookalike suffix and an UPDATE to a foreign hostname were denied. The own domain and `*.team-a.example.com` were accepted.
+- **Namespaces without an assignment are open.** The unlabeled `team-c` could create a ListenerSet, where the VAP denied it. Gatekeeper here is default allow, the VAP with a label is default deny.
+
+I did not verify Gatekeeper's audit of objects that existed before the policy. That would be the one real advantage over a VAP, which only checks `CREATE` and `UPDATE`.
+
+My take: if you already run Azure Policy for governance, Gatekeeper fits. For this one rule, the VAP is shorter, applies immediately and needs no per-team assignment. The output is in `docs/outputs-hostname-policy-gatekeeper.txt` in the repo.
 
 ## Limits
 
