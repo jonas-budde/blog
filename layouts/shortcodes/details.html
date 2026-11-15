@@ -1,0 +1,4 @@
+<details>
+  <summary>{{ .Get "summary" | default "Show output" }}</summary>
+  {{ .Inner | markdownify }}
+</details>
