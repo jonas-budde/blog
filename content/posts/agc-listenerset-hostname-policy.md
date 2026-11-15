@@ -9,13 +9,13 @@ type: "post"
 
 In my [last post](/posts/agc-listenerset-multi-team/) a platform team owns the Gateway and every application team attaches its own `ListenerSet` and `HTTPRoute`. The only control the platform team has is `allowedListeners`, which selects *namespaces*. Once a namespace is allowed, it can claim any hostname.
 
-A conflict is contained, but nothing stops team-b from creating a listener for `api.team-a.example.com`. This post closes that gap with a built-in Kubernetes feature: a **ValidatingAdmissionPolicy** (CEL). No extra component (I also tried Gatekeeper, see below).
+A conflict is contained, but nothing stops team-b from creating a listener for `api.team-a.example.com`. This post closes that gap with a built-in Kubernetes feature: a **ValidatingAdmissionPolicy** (CEL).
 
-The full files and the recorded output are in [demo-agc-listenerset](https://github.com/jonas-budde/demo-agc-listenerset) (`hostname-policy/` and `docs/outputs-hostname-policy.txt`).
+The full manifests are in [demo-agc-listenerset](https://github.com/jonas-budde/demo-agc-listenerset) (`hostname-policy/`).
 
-## What I tested
+## Setup
 
-The policy only looks at the API objects, so no gateway controller is involved. I used a plain AKS 1.36.5 cluster with the Gateway API v1.7.0 standard CRDs, where `ListenerSet` is included. The same policy applies to AGC, but I did not run it against an AGC Gateway.
+You need Kubernetes 1.30 or newer (ValidatingAdmissionPolicy is GA) and the Gateway API standard CRDs v1.5 or newer, which include `ListenerSet`. The policy only looks at API objects, so no gateway controller is required.
 
 ## The idea
 
@@ -82,15 +82,7 @@ The suffix check uses `'.' + suffix`, so `evil-team-b.example.com` does not pass
 
 ## Result
 
-Team-a can use its own domain:
-
-```text
-$ kubectl apply -f 20-valid.yaml
-listenerset.gateway.networking.k8s.io/team-a-listeners created
-httproute.gateway.networking.k8s.io/team-a-route created
-```
-
-A wildcard inside the team domain (`*.team-a.example.com`) is accepted as well. Everything else is rejected at admission time:
+Team-a can use its own domain, including a wildcard inside it (`*.team-a.example.com`). Everything else is rejected at admission time:
 
 | Case | Result |
 |---|---|
@@ -103,35 +95,36 @@ A wildcard inside the team domain (`*.team-a.example.com`) is accepted as well. 
 | HTTPRoute without hostnames | denied |
 | UPDATE of team-a's ListenerSet to a team-b hostname | denied |
 
-The error is clear for the team:
-
+{{< details summary="Show output" >}}
 ```text
+$ kubectl apply -f 20-valid.yaml
+listenerset.gateway.networking.k8s.io/team-a-listeners created
+httproute.gateway.networking.k8s.io/team-a-route created
+
+$ kubectl apply -f denied/01-listenerset-foreign-hostname.yaml
 The listenersets "b-uses-a" is invalid: : ValidatingAdmissionPolicy 'team-hostnames' with binding 'team-hostnames' denied request: hostname not allowed in this namespace, must be team-b.example.com or end with .team-b.example.com
 ```
-
-The repo has the output of every case, including the apply errors and the `kubectl get` results.
+{{< /details >}}
 
 ## What about Gatekeeper?
 
-AKS ships Gatekeeper with the Azure Policy add-on, so I tried the same rule there (AKS 1.36.5, Gatekeeper v3.23.1). The Rego version is in the repo under `hostname-policy/gatekeeper/`.
+AKS ships Gatekeeper with the Azure Policy add-on, so the same rule can be written in Rego (`hostname-policy/gatekeeper/` in the repo).
 
-- **You cannot apply your own ConstraintTemplate.** With the add-on enabled, `kubectl apply` is rejected: `This cluster is governed by Azure Policy. Policies must be created through Azure.`
-- **The template has to go through an Azure Policy custom definition** (mode `Microsoft.Kubernetes.Data`) with the template embedded, plus an assignment. After the assignment it took about 15 minutes until the template and constraints showed up in the cluster.
-- **No namespace labels.** I did not get the label-driven model working. Instead each team needs its own assignment with the namespace and domain as parameters. I did not test Gatekeeper's namespace sync with the add-on.
-- **The result is the same for covered namespaces.** A foreign hostname, a wildcard outside the domain, a missing hostname, a lookalike suffix and an UPDATE to a foreign hostname were denied. The own domain and `*.team-a.example.com` were accepted.
-- **Namespaces without an assignment are open.** The unlabeled `team-c` could create a ListenerSet, where the VAP denied it. Gatekeeper here is default allow, the VAP with a label is default deny.
+- **No direct ConstraintTemplate.** With the add-on enabled, `kubectl apply` of your own template is rejected: `This cluster is governed by Azure Policy. Policies must be created through Azure.`
+- **Policy goes through Azure Policy.** The template is embedded in a custom policy definition (mode `Microsoft.Kubernetes.Data`) and assigned to the cluster. It took about 15 minutes until the template and constraints appeared in the cluster.
+- **One assignment per team instead of a label.** The VAP reads the domain from the namespace label. The Rego input contains the namespace name but not its labels. Reading them needs Gatekeeper's data replication (referential constraints), which the Gatekeeper docs warn can run into race conditions. With Azure Policy managing Gatekeeper, the practical route is parameters: one assignment per team with `namespaces` and `suffix`. Onboarding a team means a new assignment instead of a label.
+- **Same decisions in covered namespaces.** Foreign hostname, wildcard outside the domain, missing hostname, lookalike suffix and an UPDATE to a foreign hostname were denied. The own domain and `*.team-a.example.com` were accepted.
+- **Default allow.** A namespace without an assignment (`team-c`) could create a ListenerSet, where the VAP denies it.
+- **Audit of existing objects.** Gatekeeper audits resources periodically (every 60 seconds by default) and records violations in the constraint status, limited to 20 per constraint by default. Azure Policy shows them as compliance results. The VAP only evaluates requests, so this is the part Gatekeeper does better.
 
-I did not verify Gatekeeper's audit of objects that existed before the policy. That would be the one real advantage over a VAP, which only checks `CREATE` and `UPDATE`.
-
-My take: if you already run Azure Policy for governance, Gatekeeper fits. For this one rule, the VAP is shorter, applies immediately and needs no per-team assignment. The output is in `docs/outputs-hostname-policy-gatekeeper.txt` in the repo.
+Gatekeeper fits if you already govern with Azure Policy and want reporting on existing objects. For this one rule the VAP is shorter, applies immediately and needs no per-team assignment.
 
 ## Limits
 
-- The policy only validates `CREATE` and `UPDATE`. Objects that already exist are not checked, so apply it before you onboard teams or review existing ones.
+- The VAP only validates `CREATE` and `UPDATE`. Objects that already exist are not checked, so apply it before you onboard teams or review existing ones. Gatekeeper's audit covers that.
 - The label is the source of truth. Whoever can edit the namespace labels can change the allowed domain, so keep that permission with the platform team.
-- This only covers hostnames. I did not test path restrictions. They are possible in CEL but get complicated quickly.
 - Two teams with overlapping suffixes are not prevented. Hand out distinct domains.
-- The `hostname-suffix` label name is my choice and not part of any standard.
+- Paths are not covered. The same approach works for paths, but it is harder. Paths are not part of the ListenerSet, they live in `HTTPRoute.spec.rules[].matches[].path`. A match has a type (`Exact`, `PathPrefix` or `RegularExpression`) and without any match the route defaults to a prefix match on `/`, which catches every request. A policy would have to deny missing matches, handle each type and could not reason about regular expressions, which are implementation-specific. `PathPrefix` matches whole segments, so a plain `startsWith('/team-a')` would wrongly allow `/team-a-admin`. Filters such as URL rewrites can also change the final path, and teams sharing one hostname need clear path ownership.
 
 ## Takeaways
 
