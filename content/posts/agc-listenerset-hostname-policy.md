@@ -7,6 +7,8 @@ tags: ["Azure", "AKS", "Azure Kubernetes Service", "Gateway API", "ListenerSet",
 type: "post"
 ---
 
+![hostname policy](/media/agc-listenerset/diagram-hostname-policy.png)
+
 In my [last post](/posts/agc-listenerset-multi-team/) a platform team owns the Gateway and every application team attaches its own `ListenerSet` and `HTTPRoute`. The only control the platform team has is `allowedListeners`, which selects *namespaces*. Once a namespace is allowed, it can claim any hostname.
 
 A conflict is contained, but nothing stops team-b from creating a listener for `api.team-a.example.com`. This post closes that gap with a built-in Kubernetes feature: a **ValidatingAdmissionPolicy** (CEL).
