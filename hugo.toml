@@ -32,7 +32,7 @@ pygmentsStyle = "solarized-dark"
   # Footer text (i.e. author/project name)
   footer = "Jonas"
 
-  numberPostsOnHomePage = 4
+  numberPostsOnHomePage = 10
 
   showPostsOnHomePage = "recent"
 
