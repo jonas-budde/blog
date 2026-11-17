@@ -279,7 +279,7 @@ spec:
               - cluster.local/ns/demo/sa/waypoint
 ```
 
-ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` (exit code 56, no response) and the ztunnel log records an error for the connection from `c-plain`.
+ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` and the ztunnel log records an error for the connection from `c-plain`.
 
 The gateway (`internal-gw-istio`) and the waypoint (see below) each have their own service account. If you forget to list them, the policy blocks your own gateway.
 
