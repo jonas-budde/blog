@@ -260,7 +260,7 @@ Without a policy, ambient mode still accepts that plaintext connection. mTLS is 
 
 ## L4 policy: only mesh identities allowed
 
-Layer 4 means the connection itself: who is connecting (identity, IP, port), not what is sent. The mTLS identity is all `ztunnel` can see, which is why a policy based on it is the cheap, always-available layer. This is the step that turns "mTLS is possible" into "only the mesh is allowed". An `AuthorizationPolicy` for the echo pods that only allows specific service account identities:
+Without a policy, plaintext is still accepted. This step makes `ztunnel` reject everything that is not a mesh identity. An `AuthorizationPolicy` for the echo pods that only allows specific service account identities:
 
 ```yaml
 apiVersion: security.istio.io/v1
@@ -287,7 +287,7 @@ The gateway (`internal-gw-istio`) and the waypoint (see below) each have their o
 
 ## L7 policy: the waypoint
 
-Layer 7 means the request: HTTP method, path, headers. `ztunnel` only handles the encrypted tunnel and never parses HTTP, so it can't decide on a path. That is why ambient has the optional **waypoint proxy**: an Envoy you add only for the services that need request-level rules, instead of a sidecar in every pod. You create a Gateway with the `istio-waypoint` class and label the service that should use it:
+`ztunnel` only knows who is calling, not what the request is. To allow or deny by HTTP path, you need a **waypoint**: an optional Envoy proxy that you add per service, instead of a sidecar in every pod. Here I use it to block `/admin`. You create a Gateway with the `istio-waypoint` class and label the service that should use it:
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
