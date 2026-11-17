@@ -358,8 +358,6 @@ AppNet manages the lifecycle of the data plane in `applink-system` (ztunnel, Ist
 
 Patch updates are applied automatically in both modes. The upgrade modes only cover AppNet. Your Kubernetes version and node images are still upgraded the AKS way.
 
-I did not run an AppNet upgrade in this lab, so I can't tell you how it behaves in practice.
-
 For comparison, the sidecar-based Istio add-on has a canary upgrade where every workload has to be restarted to get the new sidecar. If you run that, my [istio-sidecar-sweeper](https://github.com/jonas-budde/istio-sidecar-sweeper) kubectl plugin finds the pods with outdated sidecars and restarts them. With ambient there are no sidecars in your pods, so that step does not exist.
 
 ## Benefits
