@@ -1,15 +1,15 @@
 ---
-date: 2026-11-09
+date: 2026-11-17
 showTableOfContents: true
 title: "AKS Application Network (AppNet) on a Private Cluster"
-description: "Hands-on with the Azure Kubernetes Application Network (managed Istio ambient mesh) preview: private AKS cluster, private-connect member join, internal Gateway API gateway, mTLS via ztunnel, L4 and L7 policies with a waypoint. OpenTofu code included."
+description: "Hands-on with the Azure Kubernetes Application Network (managed, ambient-based service network) preview: private AKS cluster, private-connect member join, internal Gateway API gateway, mTLS via ztunnel, L4 and L7 policies with a waypoint. OpenTofu code included."
 tags: ["Azure", "AKS", "Azure Kubernetes Service", "Azure Kubernetes Application Network", "AppNet", "Istio", "Ambient Mesh", "Gateway API", "Private Cluster", "OpenTofu", "Terraform"]
 type: "post"
 ---
 
 ![architecture](/media/appnet-private-cluster/architecture.png)
 
-Azure Kubernetes Application Network (AppNet) is Microsoft's managed **Istio ambient mesh** for AKS. There are no sidecars: a node-level `ztunnel` handles mTLS and L4 policy, and optional **waypoint proxies** add L7 features. The Istio control plane (istiod and the CA) runs **outside your cluster**, managed by Microsoft. It is a different product from the Istio service mesh add-on, which is sidecar-based.
+Azure Kubernetes Application Network (AppNet) is Microsoft's fully managed, **ambient-based service network** for AKS (the in-cluster parts are Istio ambient components, see below). There are no sidecars: a node-level `ztunnel` handles mTLS and L4 policy, and optional **waypoint proxies** add L7 features. The Istio control plane (istiod and the CA) runs **outside your cluster**, managed by Microsoft. It is a different product from the Istio service mesh add-on, which is sidecar-based.
 
 AppNet is in **preview**, so it is not for production and not covered by an SLA. I wanted to know whether it works in the setup I'd actually use: a **private AKS cluster** with an **internal gateway**. This post shows what it takes and what the mesh does once it runs.
 
