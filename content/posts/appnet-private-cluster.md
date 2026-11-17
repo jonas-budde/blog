@@ -349,6 +349,29 @@ RBAC: access denied
 
 The rule is enforced by the waypoint, not by the app. Kubernetes warns when you apply the policy that a DENY rule with only HTTP attributes denies all TCP traffic under its scope and recommends to set a port explicitly. For this demo I left it out, in a real setup add the port.
 
+## Upgrades
+
+AppNet manages the lifecycle of the data plane in `applink-system` (ztunnel, Istio CNI, waypoint proxies and CRDs) and of the control plane outside the cluster. Each member has one of two upgrade modes, which is set when it joins and can't be changed without removing and rejoining the member ([docs](https://learn.microsoft.com/en-us/azure/application-network/upgrades)):
+
+- `SelfManaged` (default): you pick the minor version and decide when to move to the next one. Upgrades go one minor version at a time and you can roll back one version. My lab member uses this mode with version `1.5`
+- `FullyManaged`: AppNet upgrades the member along a release channel (`stable` or `rapid`) and you can't control the timing
+
+Patch updates are applied automatically in both modes. The upgrade modes only cover AppNet. Your Kubernetes version and node images are still upgraded the AKS way.
+
+I did not run an AppNet upgrade in this lab, so I can't tell you how it behaves in practice.
+
+For comparison, the sidecar-based Istio add-on has a canary upgrade where every workload has to be restarted to get the new sidecar. If you run that, my [istio-sidecar-sweeper](https://github.com/jonas-budde/istio-sidecar-sweeper) kubectl plugin finds the pods with outdated sidecars and restarts them. With ambient there are no sidecars in your pods, so that step does not exist.
+
+## Benefits
+
+From the [overview](https://learn.microsoft.com/en-us/azure/application-network/overview) and the lab:
+
+- **No sidecars and no application changes**: you enroll a namespace with one label. Workloads keep their pod spec
+- **Less resource use**: the proxies move out of the pods to one ztunnel per node and optional waypoints
+- **Managed control plane and CA**: istiod and the certificates are not your job. Workloads get SPIFFE identities and automatic mTLS
+- **Managed versions**: upgrade modes and release channels instead of running Istio upgrades yourself
+- **Private clusters work**: the control plane reaches the private API server through the private-connect subnet
+
 ## Takeaways
 
 - AppNet works with a **private AKS cluster** through the private-connect subnet: member join, `ztunnel`, CNI and an east-west gateway all came up, with no Istio control plane in the cluster.
