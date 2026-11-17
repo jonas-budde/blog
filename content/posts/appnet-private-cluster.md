@@ -365,16 +365,6 @@ Patch updates are applied automatically in both modes. The upgrade modes only co
 
 For comparison, the sidecar-based Istio add-on has a canary upgrade where every workload has to be restarted to get the new sidecar. If you run that, my [istio-sidecar-sweeper](https://github.com/jonas-budde/istio-sidecar-sweeper) kubectl plugin finds the pods with outdated sidecars and restarts them. With ambient there are no sidecars in your pods, so that step does not exist.
 
-## Benefits
-
-From the [overview](https://learn.microsoft.com/en-us/azure/application-network/overview) and the lab:
-
-- **No sidecars and no application changes**: you enroll a namespace with one label. Workloads keep their pod spec
-- **Less resource use**: the proxies move out of the pods to one ztunnel per node and optional waypoints
-- **Managed control plane and CA**: istiod and the certificates are not your job. Workloads get SPIFFE identities and automatic mTLS
-- **Managed versions**: upgrade modes and release channels instead of running Istio upgrades yourself
-- **Private clusters work**: the control plane reaches the private API server through the private-connect subnet
-
 ## Takeaways
 
 - AppNet works with a **private AKS cluster** through the private-connect subnet: member join, `ztunnel`, CNI and an east-west gateway all came up, with no Istio control plane in the cluster.
