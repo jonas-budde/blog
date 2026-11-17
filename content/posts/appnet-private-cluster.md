@@ -76,7 +76,7 @@ resource "azapi_resource" "aks" {
 }
 ```
 
-The AppNet resource and the member are ARM resources as well (`Microsoft.AppLink/appLinks` and `appLinks/appLinkMembers`, API `2026-08-01-preview`):
+The AppNet resource and the member are ARM resources as well (`Microsoft.AppLink/appLinks` and `appLinks/appLinkMembers`, API `2026-08-01-preview`). There are no `azurerm` resources for them yet, so I opened a [feature request](https://github.com/hashicorp/terraform-provider-azurerm/issues/33878):
 
 ```terraform
 resource "azapi_resource" "appnet" {
@@ -122,17 +122,22 @@ Creating the member took about 10 minutes. The private-connect path worked on my
 
 ### The subnet delegation
 
-The private-connect subnet must be delegated to `Microsoft.AppLink/appLinks`. The code does not set it: AKS **adds it itself** during the member join. The Terraform resource then needs `ignore_changes`, otherwise it tries to remove the delegation again:
+The private-connect subnet must be delegated to `Microsoft.AppLink/appLinks`. `azurerm_subnet` rejects that delegation name at validation time (I opened [an issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/33877)), so I create the subnet with AzAPI and set the delegation explicitly:
 
 ```terraform
-resource "azurerm_subnet" "applink" {
-  name                 = "applink-private-connect"
-  resource_group_name  = azurerm_resource_group.aks.name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.20.1.0/27"]
+resource "azapi_resource" "applink_subnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "applink-private-connect"
+  parent_id = azurerm_virtual_network.this.id
 
-  lifecycle {
-    ignore_changes = [delegation]
+  body = {
+    properties = {
+      addressPrefix = "10.20.1.0/27"
+      delegations = [{
+        name       = "applink"
+        properties = { serviceName = "Microsoft.AppLink/appLinks" }
+      }]
+    }
   }
 }
 ```
