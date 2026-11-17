@@ -18,7 +18,7 @@
         <mxCell id="aksicon" value="" style="image;aspect=fixed;html=1;image=img/lib/azure2/containers/Kubernetes_Services.svg;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="408" y="356" width="26" height="26" as="geometry"/></mxCell>
 
         <mxCell id="lb" value="Internal LB" style="image;aspect=fixed;html=1;image=img/lib/azure2/networking/Load_Balancers.svg;verticalLabelPosition=bottom;verticalAlign=top;fontSize=12;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="440" y="395" width="48" height="48" as="geometry"/></mxCell>
-        <mxCell id="gw" value="Gateway (class istio)&lt;br&gt;+ HTTPRoute" style="labelBackgroundColor=none;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=12;" vertex="1" parent="1"><mxGeometry x="580" y="394" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="gw" value="Gateway (class istio)&lt;br&gt;+ HTTPRoute" style="labelBackgroundColor=none;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=12;" vertex="1" parent="1"><mxGeometry x="560" y="394" width="170" height="50" as="geometry"/></mxCell>
         <mxCell id="api" value="Private API server&lt;br&gt;(enablePrivateCluster)" style="labelBackgroundColor=none;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1000" y="394" width="230" height="50" as="geometry"/></mxCell>
 
         <mxCell id="nsdemo" value="Namespace demo (ambient)" style="labelBackgroundColor=none;arcSize=3;rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;verticalAlign=top;align=left;spacingLeft=10;fontSize=12;" vertex="1" parent="1"><mxGeometry x="430" y="490" width="420" height="110" as="geometry"/></mxCell>
@@ -36,7 +36,7 @@
 
         <mxCell id="t_e5" value="issues certs" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="750" y="45" width="90" height="20" as="geometry"/></mxCell>
         <mxCell id="t_e6" value="private connect to API server" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="596" y="160" width="190" height="20" as="geometry"/></mxCell>
-        <mxCell id="t_e8" value="HTTP :80" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="500" y="388" width="70" height="20" as="geometry"/></mxCell>
+        <mxCell id="t_e8" value="HTTP :80" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;labelBackgroundColor=none;" vertex="1" parent="1"><mxGeometry x="490" y="388" width="70" height="20" as="geometry"/></mxCell>
       </root>
     </mxGraphModel>
   </diagram>
