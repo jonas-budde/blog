@@ -9,9 +9,9 @@ type: "post"
 
 ![architecture](/media/appnet-private-cluster/architecture.png)
 
-Azure Kubernetes Application Network (AppNet) is Microsoft's fully managed, **ambient-based service network** for AKS (the in-cluster parts are Istio ambient components, see below). There are no sidecars: a node-level `ztunnel` handles mTLS and L4 policy, and optional **waypoint proxies** add L7 features. The Istio control plane (istiod and the CA) runs **outside your cluster**, managed by Microsoft. It is a different product from the Istio service mesh add-on, which is sidecar-based.
+Azure Kubernetes Application Network (AppNet) is Microsoft's fully managed, **ambient-based service network** for AKS (the in-cluster parts are Istio ambient components, see below). There are no sidecars: a node-level `ztunnel` handles mTLS and L4 policy. Optional **waypoint proxies** add L7 features. The Istio control plane (istiod and the CA) runs **outside your cluster**, managed by Microsoft. It is a different product from the Istio service mesh add-on, which is sidecar-based.
 
-AppNet is in **preview**, so it is not for production and not covered by an SLA. I wanted to know whether it works in the setup I'd actually use: a **private AKS cluster** with an **internal gateway**. This post shows what it takes and what the mesh does once it runs.
+AppNet is in **public preview**. This post shows what it takes to run it on a **private AKS cluster** with an **internal gateway** and what the mesh does once it runs.
 
 All results below are from my lab run on 2026-11-09 in Sweden Central.
 
@@ -23,11 +23,11 @@ From the [get started](https://learn.microsoft.com/en-us/azure/application-netwo
 
 - The Istio add-on (`serviceMeshProfile`) must **not** be enabled on the cluster
 - AKS-managed Microsoft Entra integration, the OIDC issuer and the **managed Gateway API installation** are required
-- AppNet is only available in a short list of regions (see `az appnet list-versions` and the docs). Sweden Central and North Europe are in, West Europe, Germany West Central, France Central and UK South are not
+- AppNet is only available in a short list of [regions](https://learn.microsoft.com/en-us/azure/application-network/overview)
 - For **private clusters** you register the `Microsoft.AppLink/PrivatePath` feature (separate from `PublicPreview`) and give the member a dedicated subnet in the cluster's VNet (`/28` or larger)
 - The nodes must reach the member's control plane FQDN on TCP 443, even if the API server is private
 
-I used a regular AKS cluster. There is an open issue where joining an AKS Automatic cluster fails ([Azure/AKS#6055](https://github.com/Azure/AKS/issues/6055)).
+I used a regular AKS cluster.
 
 ## The test setup
 
@@ -76,7 +76,7 @@ resource "azapi_resource" "aks" {
 }
 ```
 
-The AppNet resource and the member are ARM resources as well (`Microsoft.AppLink/appLinks` and `appLinks/appLinkMembers`, API `2026-08-01-preview`), so there is no need for `az appnet member join`:
+The AppNet resource and the member are ARM resources as well (`Microsoft.AppLink/appLinks` and `appLinks/appLinkMembers`, API `2026-08-01-preview`):
 
 ```terraform
 resource "azapi_resource" "appnet" {
@@ -122,7 +122,7 @@ Creating the member took about 10 minutes. The private-connect path worked on my
 
 ### The subnet delegation
 
-The private-connect subnet must be delegated to `Microsoft.AppLink/appLinks`. The `azurerm_subnet` resource does not accept that service name (it validates against a fixed list). I left the delegation out: AKS **adds it itself** during the member join. The Terraform resource then needs `ignore_changes`, otherwise it tries to remove the delegation again:
+The private-connect subnet must be delegated to `Microsoft.AppLink/appLinks`. The code does not set it: AKS **adds it itself** during the member join. The Terraform resource then needs `ignore_changes`, otherwise it tries to remove the delegation again:
 
 ```terraform
 resource "azurerm_subnet" "applink" {
@@ -192,7 +192,7 @@ spec:
           from: Same
 ```
 
-The demo namespace is enrolled in the mesh with one label, and the app is a plain deployment (2 replicas of `aks-helloworld`) plus an `HTTPRoute` to its service:
+The demo namespace is enrolled in the mesh with one label and the app is a plain deployment (2 replicas of `aks-helloworld`) plus an `HTTPRoute` to its service:
 
 ```yaml
 apiVersion: v1
@@ -229,27 +229,6 @@ content-length: 585
 x-envoy-upstream-service-time: 13
 ```
 
-### The load balancer needs rights on the subnet
-
-For about 20 minutes the gateway stayed `Programmed=False` and the service had no address. The service events showed:
-
-```
-RESPONSE 403: 403 Forbidden
-ERROR CODE: AuthorizationFailed
-[...] does not have authorization to perform action
-'Microsoft.Network/virtualNetworks/subnets/read' over scope '.../subnets/nodes'
-```
-
-This has nothing to do with AppNet. I brought my own VNet, and the cluster identity had no rights on it. A `Network Contributor` role assignment for the cluster's identity on the VNet fixes it:
-
-```terraform
-resource "azurerm_role_assignment" "aks_network" {
-  scope                = azurerm_virtual_network.this.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azapi_resource.aks.identity[0].principal_id
-}
-```
-
 Even after the role existed, the errors changed from `subnets/read` to `LinkedAuthorizationFailed` on `subnets/join/action` (first for the load balancer, then for the VMSS update) before the address was assigned. Role propagation is slow, so give it some minutes. Better, create the role assignment before you create Gateways.
 
 ## Proving the mesh: mTLS through ztunnel
@@ -270,7 +249,7 @@ Having a `ztunnel` pod running does not prove traffic is encrypted. I started tw
 ```
 
 - The ambient client's traffic goes through **HBONE** (port `15008`, the mesh tunnel) and both sides have SPIFFE identities from the workload's service account
-- The plain client connects to port `80` directly, and there is no identity
+- The plain client connects to port `80` directly and there is no identity
 
 Without a policy, ambient mode still accepts that plaintext connection. mTLS is available between enrolled workloads, but nothing forces it yet.
 
@@ -297,7 +276,7 @@ spec:
               - cluster.local/ns/demo/sa/waypoint
 ```
 
-ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` (exit code 52, empty reply), and the ztunnel log records an error for the connection from `c-plain`.
+ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` (exit code 52, empty reply) and the ztunnel log records an error for the connection from `c-plain`.
 
 The gateway (`internal-gw-istio`) and the waypoint (see below) each have their own service account. If you forget to list them, the policy blocks your own gateway.
 
@@ -368,18 +347,13 @@ x-envoy-decorator-operation: echo.demo.svc.cluster.local:80/*
 RBAC: access denied
 ```
 
-The rule is enforced by the waypoint, not by the app. Kubernetes warns when you apply the policy that a DENY rule with only HTTP attributes denies all TCP traffic under its scope, and recommends to set a port explicitly. For this demo I left it out, in a real setup add the port.
-
-## Preview quirks
-
-- The member name needs 3 to 24 characters (`m1` is rejected)
-- `azurerm_subnet` rejects the `Microsoft.AppLink/appLinks` delegation name, so the delegation can't be set in code (see above)
+The rule is enforced by the waypoint, not by the app. Kubernetes warns when you apply the policy that a DENY rule with only HTTP attributes denies all TCP traffic under its scope and recommends to set a port explicitly. For this demo I left it out, in a real setup add the port.
 
 ## Takeaways
 
 - AppNet works with a **private AKS cluster** through the private-connect subnet: member join, `ztunnel`, CNI and an east-west gateway all came up, with no Istio control plane in the cluster.
-- An **internal Istio gateway** is the Gateway API `Gateway` with the `istio` class and the `azure-load-balancer-internal` annotation. In your own VNet, grant the cluster identity rights on it first.
-- Ambient gives mTLS with SPIFFE identities between enrolled pods (HBONE on port 15008). It does not block plaintext by itself, you need an `AuthorizationPolicy`.
+- An **internal Istio gateway** is the Gateway API `Gateway` with the `istio` class and the `azure-load-balancer-internal` annotation.
+- Ambient gives mTLS with SPIFFE identities between enrolled pods. It does not block plaintext by itself, you need an `AuthorizationPolicy`.
 - L7 rules need a waypoint.
 - It is a preview, so read the current [limits](https://learn.microsoft.com/en-us/azure/application-network/overview) before you use it.
 
