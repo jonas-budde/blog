@@ -13,7 +13,7 @@ Azure Kubernetes Application Network (AppNet) is Microsoft's fully managed, **am
 
 AppNet is in **public preview**. This post shows what it takes to run it on a **private AKS cluster** with an **internal gateway** and what the mesh does once it runs.
 
-All results below are from my lab run on 2026-11-09 in Sweden Central.
+All results below are from my lab run on 2026-11-17 in Sweden Central.
 
 All code is in a repo you can reproduce: **[demo-appnet-private](https://github.com/jonas-budde/demo-appnet-private)**. All Azure resources are created with OpenTofu, the Kubernetes manifests are applied with kubectl.
 
@@ -26,8 +26,6 @@ From the [get started](https://learn.microsoft.com/en-us/azure/application-netwo
 - AppNet is only available in a short list of [regions](https://learn.microsoft.com/en-us/azure/application-network/overview)
 - For **private clusters** you register the `Microsoft.AppLink/PrivatePath` feature (separate from `PublicPreview`) and give the member a dedicated subnet in the cluster's VNet (`/28` or larger)
 - The nodes must reach the member's control plane FQDN on TCP 443, even if the API server is private
-
-I used a regular AKS cluster.
 
 ## The test setup
 
@@ -281,7 +279,7 @@ spec:
               - cluster.local/ns/demo/sa/waypoint
 ```
 
-ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` (exit code 52, empty reply) and the ztunnel log records an error for the connection from `c-plain`.
+ztunnel enforces it. The ambient client still gets `200`. The plain client is cut off, curl returns `000` (exit code 56, no response) and the ztunnel log records an error for the connection from `c-plain`.
 
 The gateway (`internal-gw-istio`) and the waypoint (see below) each have their own service account. If you forget to list them, the policy blocks your own gateway.
 
